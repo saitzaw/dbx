@@ -56,6 +56,10 @@
 
 -- COMMAND ----------
 
+select * from sales limit 10; 
+
+-- COMMAND ----------
+
 SELECT * FROM (
   SELECT
     order_id,

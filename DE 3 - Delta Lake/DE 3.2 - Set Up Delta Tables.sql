@@ -53,6 +53,16 @@
 
 -- COMMAND ----------
 
+-- use dbx_sthz.default;
+-- create or replace table `sales` as 
+-- select * from parquet.`${DA.paths.datasets}/ecommerce/raw/--sales-historical`; 
+
+-- COMMAND ----------
+
+DROP TABLE IF EXISTS sales;
+
+-- COMMAND ----------
+
 CREATE OR REPLACE TABLE sales AS
 SELECT * FROM parquet.`${DA.paths.datasets}/ecommerce/raw/sales-historical`;
 
@@ -73,6 +83,10 @@ DESCRIBE EXTENDED sales;
 
 -- COMMAND ----------
 
+DROP Table IF EXISTS sales_unparsed; 
+
+-- COMMAND ----------
+
 CREATE OR REPLACE TABLE sales_unparsed AS
 SELECT * FROM csv.`${da.paths.datasets}/ecommerce/raw/sales-csv`;
 
@@ -89,8 +103,25 @@ SELECT * FROM sales_unparsed;
 
 -- COMMAND ----------
 
+drop table if exists sales_tmp_vw;
+
+-- COMMAND ----------
+
+DROP TABLE IF EXISTS sales_delta;
+
+-- COMMAND ----------
+
+-- read from the csv file as raw data source
 CREATE OR REPLACE TEMP VIEW sales_tmp_vw
-  (order_id LONG, email STRING, transactions_timestamp LONG, total_item_quantity INTEGER, purchase_revenue_in_usd DOUBLE, unique_items INTEGER, items STRING)
+  (
+    order_id LONG
+    , email STRING
+    , transactions_timestamp LONG
+    , total_item_quantity INTEGER
+    , purchase_revenue_in_usd DOUBLE
+    , unique_items INTEGER
+    , items STRING
+  )
 USING CSV
 OPTIONS (
   path = "${da.paths.datasets}/ecommerce/raw/sales-csv",
@@ -98,10 +129,13 @@ OPTIONS (
   delimiter = "|"
 );
 
+-- write to a delta table
+
 CREATE TABLE sales_delta AS
   SELECT * FROM sales_tmp_vw;
   
-SELECT * FROM sales_delta
+-- show create query result 
+SELECT * FROM sales_delta;
 
 -- COMMAND ----------
 
@@ -118,8 +152,16 @@ SELECT * FROM sales_delta
 
 -- COMMAND ----------
 
+drop table if exists purchases;
+
+-- COMMAND ----------
+
+-- create a new table from sales
 CREATE OR REPLACE TABLE purchases AS
-SELECT order_id AS id, transaction_timestamp, purchase_revenue_in_usd AS price
+  SELECT 
+    order_id AS id
+    , transaction_timestamp
+    , purchase_revenue_in_usd AS price
 FROM sales;
 
 SELECT * FROM purchases
@@ -133,8 +175,16 @@ SELECT * FROM purchases
 
 -- COMMAND ----------
 
+drop view if exists purchases_vw; 
+
+-- COMMAND ----------
+
+-- create a new view table 
 CREATE OR REPLACE VIEW purchases_vw AS
-SELECT order_id AS id, transaction_timestamp, purchase_revenue_in_usd AS price
+  SELECT 
+  order_id AS id
+  , transaction_timestamp
+  , purchase_revenue_in_usd AS price
 FROM sales;
 
 SELECT * FROM purchases_vw
@@ -157,11 +207,18 @@ SELECT * FROM purchases_vw
 
 -- COMMAND ----------
 
+drop table if exists purchase_dates; 
+
+-- COMMAND ----------
+
+-- adding extra column 
+-- adding transaction timestamp
+-- adding comment
 CREATE OR REPLACE TABLE purchase_dates (
-  id STRING, 
-  transaction_timestamp STRING, 
-  price STRING,
-  date DATE GENERATED ALWAYS AS (
+  id STRING
+  , transaction_timestamp STRING
+  , price STRING
+  , date DATE GENERATED ALWAYS AS (
     cast(cast(transaction_timestamp/1e6 AS TIMESTAMP) AS DATE))
     COMMENT "generated based on `transactions_timestamp` column")
 
@@ -210,8 +267,8 @@ SELECT * FROM purchase_dates
 
 -- COMMAND ----------
 
--- INSERT INTO purchase_dates VALUES
--- (1, 600000000, 42.0, "2020-06-18")
+INSERT INTO purchase_dates VALUES
+(1, 600000000, 42.0, "2020-06-18")
 
 -- COMMAND ----------
 

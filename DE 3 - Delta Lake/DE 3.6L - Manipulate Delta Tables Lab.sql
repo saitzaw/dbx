@@ -53,7 +53,12 @@
 -- COMMAND ----------
 
 CREATE TABLE beans 
-(name STRING, color STRING, grams FLOAT, delicious BOOLEAN);
+(
+  name STRING
+  , color STRING
+  , grams FLOAT
+  , delicious BOOLEAN
+);
 
 INSERT INTO beans VALUES
 ("black", "black", 500, true),
@@ -104,7 +109,7 @@ WHEN NOT MATCHED AND b.delicious = true THEN
 
 -- COMMAND ----------
 
--- <FILL-IN>
+describe history beans
 
 -- COMMAND ----------
 
@@ -168,8 +173,8 @@ SELECT * FROM beans
 
 -- COMMAND ----------
 
--- CREATE OR REPLACE TEMP VIEW pre_delete_vw AS
--- <FILL-IN>
+CREATE OR REPLACE TEMP VIEW pre_delete_vw AS
+select * from beans version as of 4
 
 -- COMMAND ----------
 
@@ -202,7 +207,7 @@ SELECT * FROM pre_delete_vw
 
 -- COMMAND ----------
 
--- <FILL-IN>
+restore table beans to version as of 5
 
 -- COMMAND ----------
 
@@ -236,7 +241,8 @@ DESCRIBE HISTORY beans
 
 -- COMMAND ----------
 
--- <FILL-IN>
+optimize beans 
+zorder by name
 
 -- COMMAND ----------
 
@@ -360,7 +366,17 @@ SELECT * FROM beans
 
 -- COMMAND ----------
 
--- SELECT * FROM beans@v1
+
+SELECT * FROM beans@v1
+
+-- COMMAND ----------
+
+describe history beans
+
+
+-- COMMAND ----------
+
+SELECT * FROM beans@v5
 
 -- COMMAND ----------
 

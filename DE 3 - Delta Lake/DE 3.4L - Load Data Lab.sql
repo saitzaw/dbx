@@ -68,7 +68,27 @@
 
 -- COMMAND ----------
 
--- <FILL_IN>
+SELECT '${da.paths.datasets}/events_json' AS dataset_path
+
+-- COMMAND ----------
+
+select * from events_json limit 10;
+
+-- COMMAND ----------
+
+drop table if exists events_raw;
+
+-- COMMAND ----------
+
+CREATE OR REPLACE TABLE events_raw 
+(
+  key BINARY
+  , offset LONG
+  , partition INT
+  , timestamp LONG
+  , topic STRING
+  , value BINARY
+  );
 
 -- COMMAND ----------
 
@@ -108,7 +128,13 @@
 
 -- COMMAND ----------
 
+select * from events_json limit 10;
+
+-- COMMAND ----------
+
 -- <FILL_IN>
+insert into events_raw 
+select * from events_json; 
 
 -- COMMAND ----------
 
@@ -121,6 +147,15 @@
 -- COMMAND ----------
 
 -- <FILL_IN>
+select * from events_raw limit 10;
+
+-- COMMAND ----------
+
+describe detail events_raw;
+
+-- COMMAND ----------
+
+describe events_raw;
 
 -- COMMAND ----------
 
@@ -162,7 +197,8 @@
 
 -- COMMAND ----------
 
--- <FILL_IN> ${da.paths.datasets}/ecommerce/raw/item-lookup
+create table item_lookup as 
+select * from parquet.`${da.paths.datasets}/ecommerce/raw/item-lookup`; 
 
 -- COMMAND ----------
 
@@ -172,6 +208,10 @@
 -- MAGIC
 -- MAGIC
 -- MAGIC Run the cell below to confirm the lookup table has been loaded correctly.
+
+-- COMMAND ----------
+
+select * from item_lookup limit 10; 
 
 -- COMMAND ----------
 
