@@ -41,6 +41,20 @@
 
 -- COMMAND ----------
 
+use catalog dbx_sthz;
+
+-- COMMAND ----------
+
+-- create a schema 
+create schema if not exists silver;
+
+-- COMMAND ----------
+
+create table silver.heartrate_device as 
+select * from example.heartrate_device
+
+-- COMMAND ----------
+
 SELECT * FROM silver.heartrate_device
 
 -- COMMAND ----------
@@ -49,6 +63,10 @@ SELECT * FROM silver.heartrate_device
 -- MAGIC ## Create gold view
 -- MAGIC
 -- MAGIC With a silver table in place, let's create a view that aggregates data from silver, presenting data suitable for the gold layer of a medallion architecture.
+
+-- COMMAND ----------
+
+create schema if not exists gold;
 
 -- COMMAND ----------
 
@@ -107,7 +125,7 @@ GRANT SELECT ON VIEW gold.heartrate_avgs to `account users`
 
 -- COMMAND ----------
 
-GRANT USAGE ON CATALOG ${DA.catalog_name} TO `account users`;
+GRANT USAGE ON CATALOG dbx_sthz TO `account users`;
 GRANT USAGE ON DATABASE gold TO `account users`
 
 -- COMMAND ----------
@@ -122,7 +140,7 @@ GRANT USAGE ON DATABASE gold TO `account users`
 -- COMMAND ----------
 
 -- MAGIC %python
--- MAGIC print(f"SELECT * FROM {DA.catalog_name}.gold.heartrate_avgs")
+-- MAGIC print(f"SELECT * FROM dbx_sthz.gold.heartrate_avgs")
 
 -- COMMAND ----------
 
@@ -134,7 +152,7 @@ GRANT USAGE ON DATABASE gold TO `account users`
 -- COMMAND ----------
 
 -- MAGIC %python
--- MAGIC print(f"SELECT * FROM {DA.catalog_name}.silver.heartrate_device ")
+-- MAGIC print(f"SELECT * FROM dbx_sthz.silver.heartrate_device ")
 
 -- COMMAND ----------
 
@@ -167,7 +185,7 @@ GRANT USAGE ON DATABASE gold TO `account users`
 
 -- COMMAND ----------
 
-CREATE OR REPLACE VIEW gold.heartrate_avgs AS
+CREATE OR REPLACE VIEW dbx_sthz.gold.heartrate_avgs AS
 SELECT
   CASE WHEN
     is_account_group_member('account users') THEN 'REDACTED'
@@ -177,9 +195,9 @@ SELECT
     is_account_group_member('account users') THEN 'REDACTED'
     ELSE name
   END AS name,
-  MEAN(heartrate) avg_heartrate,
+  MEAN(heartrate) AS avg_heartrate,
   DATE_TRUNC("DD", time) date
-  FROM silver.heartrate_device
+  FROM dbx_sthz.silver.heartrate_device
   GROUP BY mrn, name, DATE_TRUNC("DD", time)
 
 -- COMMAND ----------

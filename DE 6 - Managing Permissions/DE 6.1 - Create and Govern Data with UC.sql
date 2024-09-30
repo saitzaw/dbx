@@ -69,7 +69,16 @@
 
 -- COMMAND ----------
 
-CREATE CATALOG IF NOT EXISTS ${DA.my_new_catalog}
+SELECT current_catalog() as catalog
+
+-- COMMAND ----------
+
+-- MAGIC %python 
+-- MAGIC spark.sql("SELECT current_catalog() as catalog").first()
+
+-- COMMAND ----------
+
+CREATE CATALOG IF NOT EXISTS `${DA.my_new_catalog}_my_vcl_uc`
 
 -- COMMAND ----------
 
@@ -85,7 +94,8 @@ CREATE CATALOG IF NOT EXISTS ${DA.my_new_catalog}
 
 -- COMMAND ----------
 
-USE CATALOG ${DA.my_new_catalog}
+-- USE CATALOG ${DA.my_new_catalog}
+USE CATALOG dbx_sthz
 
 -- COMMAND ----------
 
@@ -161,7 +171,7 @@ SELECT * FROM agg_heartrate
 
 -- COMMAND ----------
 
-GRANT USAGE ON CATALOG ${DA.my_new_catalog} TO `account users`;
+GRANT USAGE ON CATALOG dbx_sthz TO `account users`;
 
 -- COMMAND ----------
 
@@ -190,7 +200,7 @@ GRANT SELECT ON VIEW agg_heartrate to `account users`
 
 -- COMMAND ----------
 
-SELECT "SELECT * FROM ${DA.my_new_catalog}.example.agg_heartrate" AS Query
+SELECT "SELECT * FROM dbx_sthz.example.agg_heartrate" AS Query
 
 -- COMMAND ----------
 
@@ -208,6 +218,10 @@ SELECT "SELECT * FROM ${DA.my_new_catalog}.example.agg_heartrate" AS Query
 -- MAGIC ### Create and grant access to a user-defined function
 -- MAGIC
 -- MAGIC Unity Catalog is capable of managing user-defined functions within schemas as well. The code below sets up a simple function that masks all but the last two characters of a string, and then tries it out. Once again, we are the data owner so no grants are required.
+
+-- COMMAND ----------
+
+select * from dbx_sthz.example.agg_heartrate limit 10;
 
 -- COMMAND ----------
 
@@ -236,7 +250,7 @@ GRANT EXECUTE ON FUNCTION my_mask to `account users`
 
 -- COMMAND ----------
 
-SELECT "SELECT ${DA.my_new_catalog}.example.my_mask('sensitive data') AS data" AS Query
+SELECT "SELECT dbx_sthz.example.my_mask('sensitive data') AS data" AS Query
 
 -- COMMAND ----------
 
@@ -267,6 +281,9 @@ SELECT "SELECT ${DA.my_new_catalog}.example.my_mask('sensitive data') AS data" A
 
 -- COMMAND ----------
 
+-- create from heartrate_device 
+-- can check on the databricks catalog data lineage
+
 CREATE OR REPLACE VIEW agg_heartrate AS
 SELECT
   CASE WHEN
@@ -279,7 +296,7 @@ SELECT
   END AS name,
   MEAN(heartrate) avg_heartrate,
   DATE_TRUNC("DD", time) date
-  FROM heartrate_device
+  FROM dbx_sthz.example.heartrate_device
   GROUP BY mrn, name, DATE_TRUNC("DD", time)
 
 -- COMMAND ----------
@@ -302,7 +319,7 @@ GRANT SELECT ON VIEW agg_heartrate to `account users`
 
 -- COMMAND ----------
 
-SELECT "SELECT * FROM ${DA.my_new_catalog}.example.agg_heartrate" AS Query
+SELECT "SELECT * FROM dbx_sthz.example.agg_heartrate" AS Query
 
 -- COMMAND ----------
 
@@ -319,7 +336,7 @@ SELECT
   time,
   device_id,
   heartrate
-FROM heartrate_device
+FROM dbx_sthz.example.heartrate_device
 WHERE
   CASE WHEN
     is_account_group_member('account users') THEN device_id < 30
@@ -361,7 +378,7 @@ SELECT
   time,
   device_id,
   heartrate
-FROM heartrate_device
+FROM dbx_sthz.example.heartrate_device
 WHERE
   CASE WHEN
     is_account_group_member('account users') THEN device_id < 30
@@ -451,7 +468,7 @@ SHOW GRANTS ON VIEW agg_heartrate
 
 -- COMMAND ----------
 
-SHOW GRANTS ON TABLE heartrate_device
+SHOW GRANTS ON TABLE dbx_sthz.example.heartrate_device
 
 -- COMMAND ----------
 

@@ -138,7 +138,11 @@ SELECT * FROM patient_gold.heartrate_stats;
 
 -- COMMAND ----------
 
--- GRANT SELECT ON TABLE patient_gold.heartrate_stats to `account users`
+-- create schema `dbx_sthz.patient_gold` 
+
+-- COMMAND ----------
+
+GRANT SELECT ON TABLE patient_gold.heartrate_stats to `account users`
 
 -- COMMAND ----------
 
@@ -152,7 +156,7 @@ SELECT * FROM patient_gold.heartrate_stats;
 -- COMMAND ----------
 
 -- MAGIC %python
--- MAGIC print(f"SELECT * FROM {DA.catalog_name}.patient_gold.heartrate_stats")
+-- MAGIC print(f"SELECT * FROM  dbx_sthz.patient_gold.heartrate_stats")
 
 -- COMMAND ----------
 
@@ -161,8 +165,8 @@ SELECT * FROM patient_gold.heartrate_stats;
 
 -- COMMAND ----------
 
--- GRANT USAGE ON CATALOG ${DA.catalog_name} TO `account users`;
--- GRANT USAGE ON SCHEMA patient_gold TO `account users`
+GRANT USAGE ON CATALOG dbx_sthz TO `account users`;
+GRANT USAGE ON SCHEMA patient_gold TO `account users`
 
 -- COMMAND ----------
 
@@ -180,7 +184,7 @@ SELECT * FROM patient_gold.heartrate_stats;
 
 -- COMMAND ----------
 
--- SHOW GRANT ON TABLE ${DA.catalog_name}.patient_gold.heartrate_stats
+SHOW GRANT ON TABLE dbx_sthz.patient_gold.heartrate_stats
 
 -- COMMAND ----------
 
@@ -189,11 +193,11 @@ SELECT * FROM patient_gold.heartrate_stats;
 
 -- COMMAND ----------
 
-SHOW TABLES IN ${DA.catalog_name}.patient_silver;
+SHOW TABLES IN dbx_sthz.patient_silver;
 
 -- COMMAND ----------
 
--- SHOW GRANT ON TABLE ${DA.catalog_name}.patient_silver.heartrate
+SHOW GRANT ON TABLE dbx_sthz.patient_silver.heartrate
 
 -- COMMAND ----------
 
@@ -204,7 +208,7 @@ SHOW TABLES IN ${DA.catalog_name}.patient_silver;
 
 -- COMMAND ----------
 
--- SHOW GRANT ON SCHEMA ${DA.catalog_name}.patient_silver
+SHOW GRANT ON SCHEMA dbx_sthz.patient_silver
 
 -- COMMAND ----------
 
@@ -215,7 +219,7 @@ SHOW TABLES IN ${DA.catalog_name}.patient_silver;
 
 -- COMMAND ----------
 
--- SHOW GRANT ON CATALOG `${DA.catalog_name}`
+SHOW GRANT ON CATALOG dbx_sthz
 
 -- COMMAND ----------
 
