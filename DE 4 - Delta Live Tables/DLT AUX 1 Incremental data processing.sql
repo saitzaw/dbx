@@ -1,0 +1,163 @@
+-- Databricks notebook source
+-- MAGIC %md
+-- MAGIC ###Types of data loading
+-- MAGIC * Full load
+-- MAGIC * Incremental load
+-- MAGIC
+-- MAGIC ###Incremental data processing
+-- MAGIC Incremental data processing in Databricks refers to the process of updating or appending new data to an existing dataset in a way that is efficient and avoids reprocessing the entire dataset. It allows you to process only the new or updated data since the last processing run, reducing computational overhead and improving performance.
+-- MAGIC
+-- MAGIC ![image](https://www.databricks.com/wp-content/uploads/2021/08/What-Is-Incremental-ETL-and-Why-You-Need-it-blog-img-1.jpg)
+-- MAGIC ####Major types of Incremental data processing:
+-- MAGIC
+-- MAGIC * **Streaming data & Batch data techniques**
+-- MAGIC   * Structured streaming
+-- MAGIC   * Autoloader
+-- MAGIC
+-- MAGIC * **Batch data**
+-- MAGIC   * COPY INTO
+-- MAGIC
+-- MAGIC Note: Structured straming and Autoloader can also be used as batch data load with option trigger(availableNow=True) while writing the data, which will process the data once and then stop.
+-- MAGIC   
+
+-- COMMAND ----------
+
+-- MAGIC %md
+-- MAGIC ##Streaming data
+-- MAGIC Structured Streaming is a scalable and fault-tolerant stream processing engine built on the Spark SQL engine. You can express your streaming computation the same way you would express a batch computation on static data. The Spark SQL engine will take care of running it incrementally and continuously and updating the final result as streaming data continues to arrive. 
+-- MAGIC
+-- MAGIC <img src="http://spark.apache.org/docs/latest/img/structured-streaming-stream-as-a-table.png" width="800"/>
+-- MAGIC
+-- MAGIC A **data stream** describes any data source that grows over time. New data in a data stream might correspond to:
+-- MAGIC * A new JSON log file landing in cloud storage
+-- MAGIC * Updates to a database captured in a CDC feed
+-- MAGIC * Events queued in a pub/sub messaging feed
+-- MAGIC * A CSV file of sales closed the previous day
+-- MAGIC
+-- MAGIC **Examples of streaming data**:
+-- MAGIC * Credit card transactions need to be monitored in real time to be able to flag fraduent transactions
+-- MAGIC * Sensors in machineries need continuous condition monitoring for various factors like temperature and pressure
+-- MAGIC * Organization need this to continuously monitor their twitter handles to flag posts on sensitive topics using NLP
+
+-- COMMAND ----------
+
+-- MAGIC %md
+-- MAGIC ###Main types of Streaming:
+-- MAGIC ####Structured Streaming
+-- MAGIC
+-- MAGIC Input source is in the from of a **Delta table**
+-- MAGIC
+-- MAGIC ####Autoloader
+-- MAGIC
+-- MAGIC Input source are **files in a Cloud storage location**
+
+-- COMMAND ----------
+
+-- MAGIC %md
+-- MAGIC ##Advantages of using spark for streaming data:
+-- MAGIC
+-- MAGIC ###**Easy to use**
+-- MAGIC Spark Structured Streaming abstracts away complex streaming concepts such as **incremental processing**, **checkpointing, and watermarks** so that you can build streaming applications and pipelines without learning any new concepts or tools.
+-- MAGIC
+-- MAGIC ####Checkpointing
+-- MAGIC
+-- MAGIC * Provides fault tolerance
+-- MAGIC
+-- MAGIC * Exactly-once guarantee
+-- MAGIC
+-- MAGIC ###**Unified batch and streaming APIs**
+-- MAGIC Spark Structured Streaming provides the same structured APIs (DataFrames and Datasets) as Spark so that you don’t need to develop on or maintain two different technology stacks for batch and streaming.
+-- MAGIC
+-- MAGIC ###**Low latency and cost effective**
+-- MAGIC Spark Structured Streaming uses the same underlying architecture as Spark so that you can take advantage of all the **performance and cost optimizations** built into the Spark engine. With Spark Structured Streaming, you can build **low latency** streaming applications and pipelines cost effectively.
+-- MAGIC
+-- MAGIC ####Unsupported operations
+-- MAGIC * Sorting
+-- MAGIC * Deduplication
+-- MAGIC
+-- MAGIC The above needs advances methods such as windowing functions.
+
+-- COMMAND ----------
+
+-- MAGIC %md
+-- MAGIC ##Reading data for Structured Streaming
+-- MAGIC ###readStream
+-- MAGIC
+-- MAGIC Input source is from a **Delta table**
+-- MAGIC
+-- MAGIC streamDF = spark.readStream
+-- MAGIC .table([Delta table name])
+
+-- COMMAND ----------
+
+-- MAGIC %md
+-- MAGIC ##Reading data for Auto Loader 
+-- MAGIC ###readStream
+-- MAGIC ####Input source are files in a cloud storage location
+-- MAGIC streamDF = spark.readStream
+-- MAGIC
+-- MAGIC .format("cloudFiles")
+-- MAGIC
+-- MAGIC .option("cloudFiles.format") //Such as csv, parquet
+-- MAGIC
+-- MAGIC .option("cloudFiles.schemaLocation") //location of the schema
+-- MAGIC
+-- MAGIC .load('/path/to/files’)
+-- MAGIC
+
+-- COMMAND ----------
+
+-- MAGIC %md
+-- MAGIC ####writeStream (Common for Strucutred streaming and Autoloader)
+-- MAGIC
+-- MAGIC streamDF.writeStream.**trigger**(processingTime="2 minutes").**outputMode**("append").**option**("checkpointLocation", "/path").table([Delta table])
+-- MAGIC
+-- MAGIC | Trigger            | Syntax                               | Affect                                         |
+-- MAGIC |--------------------|--------------------------------------|------------------------------------------------|
+-- MAGIC | Default            | None                                 | processingTime="500ms"                        |
+-- MAGIC | Fixed interval     | `.trigger(processingTime="5 minutes")` | Process data in micro-batches as per the user-specified intervals |
+-- MAGIC | Triggered batch    | `.trigger(once=True)`                 | Process all available data in a single batch, then stop |
+-- MAGIC | Triggered micro-batches | `.trigger(availableNow=True)`    | Process all available data in multiple micro-batches, then stop |
+-- MAGIC
+-- MAGIC
+-- MAGIC | Output Mode    | Syntax                   | Affect                                                             |
+-- MAGIC |---------|--------------------------|--------------------------------------------------------------------|
+-- MAGIC | Append  | `.outputMode("append")` | Only newly appended rows are incrementally appended to the target table with each batch |
+-- MAGIC | Complete | `.outputMode("complete")` | The target table is overwritten with each batch |
+-- MAGIC
+
+-- COMMAND ----------
+
+-- MAGIC %md
+-- MAGIC ##Batch data processing
+-- MAGIC
+-- MAGIC Batch data processing refers to the processing of data in large volumes as a batch or a group. In this approach, data is collected over a period of time or from a specific source and processed together as a batch rather than in real-time or as individual records.
+-- MAGIC
+-- MAGIC Examples of batch data:
+-- MAGIC * Daily sales of a departmental store
+-- MAGIC * Daily stock details of an ecommerce website
+-- MAGIC * Quarterly sales v/s profit of an organization
+-- MAGIC
+
+-- COMMAND ----------
+
+-- MAGIC %md
+-- MAGIC
+-- MAGIC **High level syntax for batch data processing (COPY INTO) command :**
+-- MAGIC
+-- MAGIC COPY INTO [Delta table name]
+-- MAGIC
+-- MAGIC FROM '/path/to/files’
+-- MAGIC
+-- MAGIC FILEFORMAT = CSV 
+-- MAGIC
+-- MAGIC FORMAT_OPTIONS ('delimiter' = '|’, 'header' = 'true')
+-- MAGIC
+-- MAGIC COPY_OPTIONS ('mergeSchema' = 'true’, 'force' = 'false')
+-- MAGIC
+-- MAGIC * File format: One of CSV, JSON, AVRO, ORC, PARQUET, TEXT, BINARYFILE.
+-- MAGIC * FORMAT_OPTIONS - force: default = false. If set to true, files are loaded regardless of whether they’ve been loaded before. 
+-- MAGIC * FORMAT_OPTIONS - mergeSchema: boolean, default false. If set to true, the schema can be evolved according to the incoming data.
+-- MAGIC
+-- MAGIC More details of this command can be found at this Databricks documentation:
+-- MAGIC https://docs.databricks.com/sql/language-manual/delta-copy-into.html#format-options

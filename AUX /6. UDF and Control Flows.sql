@@ -26,13 +26,15 @@ SELECT * FROM Computer.Accessories;
 -- COMMAND ----------
 
 --Creating a (UDF)USER DEFINED FUNCTION GenerateItemString that takes two strings as an input and returns a concatenated string
+-- add the custom function here
 CREATE OR REPLACE FUNCTION Computer.GenerateItemString(text1 STRING, text2 STRING)
 RETURNS STRING
   RETURN concat(text1, " is of ", text2, "color")
 
 -- COMMAND ----------
 
---Calling a UDF
+--Calling a UDF GenerateItemString
+-- check in computer it will be in custom UC 
 SELECT Id, Part, Color, Computer.GenerateItemString(Part, Color) as Description  FROM Computer.Accessories;
 
 -- COMMAND ----------
