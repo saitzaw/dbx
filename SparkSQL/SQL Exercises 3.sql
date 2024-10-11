@@ -53,4 +53,65 @@ from cte_top_three_income;
 
 -- COMMAND ----------
 
+-- MAGIC %md
+-- MAGIC ### PySpark
+
+-- COMMAND ----------
+
+-- MAGIC %python 
+-- MAGIC empDF = spark.sql("select * from dbx_sthz.db_demo.employee")
+-- MAGIC depDF = spark.sql("select * from dbx_sthz.db_demo.department")
+
+-- COMMAND ----------
+
+-- MAGIC %python 
+-- MAGIC depDF.display()
+
+-- COMMAND ----------
+
+-- MAGIC %python 
+-- MAGIC from pyspark.sql.functions import col, lit, rank
+-- MAGIC from pyspark.sql.window import Window
+-- MAGIC windowSpac = Window.partitionBy("departmentId").orderBy(col("salary").desc())
+-- MAGIC empDF.join(
+-- MAGIC   depDF.withColumnRenamed("name", "department_name"), 
+-- MAGIC   empDF["departmentId"] == depDF["id"], "inner")\
+-- MAGIC     .withColumn("rank", rank().over(windowSpac))\
+-- MAGIC       .filter(col("rank") < 3)\
+-- MAGIC         .select(
+-- MAGIC           col("name"), 
+-- MAGIC           col("salary"), 
+-- MAGIC           col("department_name") )\
+-- MAGIC             .display()
+
+-- COMMAND ----------
+
+
+
+-- COMMAND ----------
+
+-- MAGIC %scala 
+-- MAGIC import org.apache.spark.sql.functions.{lit, col, rank, desc}
+-- MAGIC import org.apache.spark.sql.expressions.Window
+
+-- COMMAND ----------
+
+-- MAGIC %scala
+-- MAGIC val windowSpec = Window.partitionBy("departmentId").orderBy(desc("salary"))
+-- MAGIC var empDFs = spark.sql("select * from dbx_sthz.db_demo.employee") 
+-- MAGIC var depDFs = spark.sql("select * from dbx_sthz.db_demo.department")
+
+-- COMMAND ----------
+
+-- MAGIC %scala
+-- MAGIC empDFs.join(
+-- MAGIC   depDFs.withColumnRenamed("name", "department_name"), 
+-- MAGIC   empDFs("departmentId") === depDFs("id"), "inner")
+-- MAGIC   .withColumn("rank", rank().over(windowSpec))
+-- MAGIC   .filter(col("rank") < 3)
+-- MAGIC   .select("name", "salary", "department_name")
+-- MAGIC   .show()
+
+-- COMMAND ----------
+
 
