@@ -71,4 +71,22 @@ from seat
 
 -- COMMAND ----------
 
+-- MAGIC %scala 
+-- MAGIC import org.apache.spark.sql.functions.{lit, col, when, lead, lag, coalesce}
+-- MAGIC import org.apache.spark.sql.expressions.Window
+-- MAGIC
+
+-- COMMAND ----------
+
+-- MAGIC %scala 
+-- MAGIC val windowSpec = Window.orderBy("id")
+-- MAGIC var studentDF = spark.sql("select * from dbx_sthz.db_demo.seat")
+-- MAGIC studentDF.withColumn(
+-- MAGIC   "reorder", 
+-- MAGIC   when(col("id") %2 === 0, lag(col("student"), 1).over(windowSpec))
+-- MAGIC   .otherwise(coalesce(lead(col("student"), 1).over(windowSpec), lit(null))))
+-- MAGIC   .show()
+
+-- COMMAND ----------
+
 
